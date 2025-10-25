@@ -1,0 +1,26 @@
+[
+  {
+    "id": "welcome_booster",
+    "title": "Welcome to BoosterKit!",
+    "description": "Discover how easy it is to showcase new features and updates to your users with beautiful, one-time modals.",
+    "imageName": "star.circle.fill",
+    "buttonText": "Get Started",
+    "priority": 10
+  },
+  {
+    "id": "feature_update_v2",
+    "title": "Check Out Our New Editor",
+    "description": "We've completely redesigned the editor experience with powerful new tools and a cleaner interface.",
+    "imageName": "pencil.and.outline",
+    "buttonText": "Try It Now",
+    "priority": 5
+  },
+  {
+    "id": "settings_reminder",
+    "title": "Customize Your Experience",
+    "description": "Did you know you can personalize your app settings? Take a moment to explore your options.",
+    "imageName": "gearshape.fill",
+    "buttonText": "Open Settings",
+    "priority": 3
+  }
+]

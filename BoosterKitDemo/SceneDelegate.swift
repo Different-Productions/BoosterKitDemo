@@ -1,52 +1,97 @@
-//
-//  SceneDelegate.swift
-//  BoosterKitDemo
-//
-//  Created by Michael Harrigan on 10/25/25.
-//
-
 import UIKit
+import SwiftData
+import BoosterKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
-  var window: UIWindow?
+    var window: UIWindow?
+    var boosterManager: BoosterManager?
 
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        guard let windowScene = (scene as? UIWindowScene) else { return }
 
-  func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-    // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
-    // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
-    // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
-    guard let _ = (scene as? UIWindowScene) else { return }
-  }
+        // Get model container from AppDelegate
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate,
+              let modelContainer = appDelegate.modelContainer else {
+            fatalError("ModelContainer not configured")
+        }
 
-  func sceneDidDisconnect(_ scene: UIScene) {
-    // Called as the scene is being released by the system.
-    // This occurs shortly after the scene enters the background, or when its session is discarded.
-    // Release any resources associated with this scene that can be re-created the next time the scene connects.
-    // The scene may re-connect later, as its session was not necessarily discarded (see `application:didDiscardSceneSessions` instead).
-  }
+        // Create window
+        window = UIWindow(windowScene: windowScene)
 
-  func sceneDidBecomeActive(_ scene: UIScene) {
-    // Called when the scene has moved from an inactive state to an active state.
-    // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
-  }
+        // Setup root view controller
+        let mainViewController = MainViewController()
+        let navigationController = UINavigationController(rootViewController: mainViewController)
+        window?.rootViewController = navigationController
+        window?.makeKeyAndVisible()
 
-  func sceneWillResignActive(_ scene: UIScene) {
-    // Called when the scene will move from an active state to an inactive state.
-    // This may occur due to temporary interruptions (ex. an incoming phone call).
-  }
+        // Load boosters from JSON file
+        let boosters = loadBoosters()
 
-  func sceneWillEnterForeground(_ scene: UIScene) {
-    // Called as the scene transitions from the background to the foreground.
-    // Use this method to undo the changes made on entering the background.
-  }
+        // Initialize BoosterManager with boosters
+        boosterManager = BoosterManager(modelContainer: modelContainer, boosters: boosters) { userAction in
+            switch userAction {
+            case .primaryActionTapped(let boosterID):
+                print("User tapped action for booster: \(boosterID)")
+                self.handleBoosterAction(boosterID: boosterID)
 
-  func sceneDidEnterBackground(_ scene: UIScene) {
-    // Called as the scene transitions from the foreground to the background.
-    // Use this method to save data, release shared resources, and store enough scene-specific state information
-    // to restore the scene back to its current state.
-  }
+            case .dismissed(let boosterID):
+                print("User dismissed booster: \(boosterID)")
+            }
+        }
 
+        // Show Booster after a brief delay to ensure UI is ready
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.boosterManager?.showBoosterIfNeeded(from: navigationController)
+        }
+    }
 
+    private func loadBoosters() -> [Booster] {
+        // Load boosters from JSON file in the app bundle
+        guard let url = Bundle.main.url(forResource: "boosters", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let boosters = try? JSONDecoder().decode([Booster].self, from: data) else {
+            print("Failed to load boosters.json, using fallback boosters")
+            return getFallbackBoosters()
+        }
+
+        print("Successfully loaded \(boosters.count) boosters from JSON")
+        return boosters
+    }
+
+    private func getFallbackBoosters() -> [Booster] {
+        // Fallback boosters if JSON loading fails
+        return [
+            Booster(
+                id: "welcome_booster",
+                title: "Welcome to BoosterKit!",
+                description: "Discover how easy it is to showcase new features and updates to your users.",
+                imageName: "star.circle.fill",
+                buttonText: "Get Started",
+                priority: 10
+            ),
+            Booster(
+                id: "feature_update",
+                title: "New Features Available",
+                description: "Check out the latest updates and improvements we've made.",
+                imageName: "sparkles",
+                buttonText: "Learn More",
+                priority: 5
+            )
+        ]
+    }
+
+    private func handleBoosterAction(boosterID: String) {
+        // Handle navigation based on boosterID
+        switch boosterID {
+        case "welcome_booster":
+            print("Navigate to welcome screen")
+        case "feature_update_v2":
+            print("Navigate to editor")
+        case "settings_reminder":
+            print("Navigate to settings")
+        default:
+            break
+        }
+    }
 }
-
