@@ -28,8 +28,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Load boosters from JSON file
         let boosters = loadBoosters()
 
-        // Initialize BoosterManager with boosters
-        boosterManager = BoosterManager(modelContainer: modelContainer, boosters: boosters) { userAction in
+        // Create custom view configurations
+        let viewConfigurations = createViewConfigurations()
+
+        // Initialize BoosterManager with boosters and view configurations
+        boosterManager = BoosterManager(
+            modelContainer: modelContainer,
+            boosters: boosters,
+            viewConfigurations: viewConfigurations
+        ) { userAction in
             switch userAction {
             case .primaryActionTapped(let boosterID):
                 print("User tapped action for booster: \(boosterID)")
@@ -79,6 +86,73 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 priority: 5
             )
         ]
+    }
+
+    private func createViewConfigurations() -> [String: BoosterViewConfiguration] {
+        var configurations: [String: BoosterViewConfiguration] = [:]
+
+        // Create a custom view for the welcome booster
+        let customView = createCustomWelcomeView()
+        configurations["welcome_booster"] = BoosterViewConfiguration(
+            customView: customView,
+            customViewHeight: 120,
+            detents: [.medium(), .large()]
+        )
+
+        return configurations
+    }
+
+    private func createCustomWelcomeView() -> UIView {
+        let containerView = UIView()
+        containerView.backgroundColor = .systemIndigo.withAlphaComponent(0.1)
+        containerView.layer.cornerRadius = 12
+
+        // Create a gradient background
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = [
+            UIColor.systemIndigo.withAlphaComponent(0.3).cgColor,
+            UIColor.systemPurple.withAlphaComponent(0.3).cgColor
+        ]
+        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
+        gradientLayer.cornerRadius = 12
+        containerView.layer.insertSublayer(gradientLayer, at: 0)
+
+        // Add emoji and text
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.spacing = 12
+        stackView.alignment = .center
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+
+        let emojiLabel = UILabel()
+        emojiLabel.text = "🚀"
+        emojiLabel.font = .systemFont(ofSize: 48)
+
+        let textLabel = UILabel()
+        textLabel.text = "Custom View Support!\nYou can add any UIView here."
+        textLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+        textLabel.numberOfLines = 0
+        textLabel.textColor = .systemIndigo
+
+        stackView.addArrangedSubview(emojiLabel)
+        stackView.addArrangedSubview(textLabel)
+
+        containerView.addSubview(stackView)
+
+        NSLayoutConstraint.activate([
+            stackView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 16),
+            stackView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            stackView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            stackView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -16)
+        ])
+
+        // Update gradient frame when layout changes
+        DispatchQueue.main.async {
+            gradientLayer.frame = containerView.bounds
+        }
+
+        return containerView
     }
 
     private func handleBoosterAction(boosterID: String) {
