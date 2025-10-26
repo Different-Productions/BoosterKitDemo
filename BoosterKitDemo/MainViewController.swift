@@ -5,6 +5,10 @@ class MainViewController: UIViewController {
 
     private let titleLabel = UILabel()
     private let instructionLabel = UILabel()
+    private let devModeContainer = UIView()
+    private let devModeLabel = UILabel()
+    private let devModeSwitch = UISwitch()
+    private let devModeInfoLabel = UILabel()
     private let resetButton = UIButton(type: .system)
 
     override func viewDidLoad() {
@@ -14,6 +18,7 @@ class MainViewController: UIViewController {
         view.backgroundColor = .systemBackground
 
         setupUI()
+        loadDevModeState()
     }
 
     private func setupUI() {
@@ -33,6 +38,32 @@ class MainViewController: UIViewController {
         instructionLabel.textColor = .secondaryLabel
         instructionLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(instructionLabel)
+
+        // Configure dev mode container
+        devModeContainer.backgroundColor = .systemGray6
+        devModeContainer.layer.cornerRadius = 12
+        devModeContainer.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(devModeContainer)
+
+        // Configure dev mode label
+        devModeLabel.text = "Dev Mode"
+        devModeLabel.font = .systemFont(ofSize: 17, weight: .semibold)
+        devModeLabel.translatesAutoresizingMaskIntoConstraints = false
+        devModeContainer.addSubview(devModeLabel)
+
+        // Configure dev mode switch
+        devModeSwitch.translatesAutoresizingMaskIntoConstraints = false
+        devModeSwitch.addTarget(self, action: #selector(devModeSwitchChanged), for: .valueChanged)
+        devModeContainer.addSubview(devModeSwitch)
+
+        // Configure dev mode info label
+        devModeInfoLabel.text = "When enabled, boosters won't be marked as viewed and can be shown repeatedly"
+        devModeInfoLabel.font = .systemFont(ofSize: 13)
+        devModeInfoLabel.textAlignment = .left
+        devModeInfoLabel.numberOfLines = 0
+        devModeInfoLabel.textColor = .secondaryLabel
+        devModeInfoLabel.translatesAutoresizingMaskIntoConstraints = false
+        devModeContainer.addSubview(devModeInfoLabel)
 
         // Configure reset button
         resetButton.setTitle("Reset Demo (Clear Viewed Boosters)", for: .normal)
@@ -54,11 +85,45 @@ class MainViewController: UIViewController {
             instructionLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
             instructionLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
 
+            devModeContainer.topAnchor.constraint(equalTo: instructionLabel.bottomAnchor, constant: 32),
+            devModeContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            devModeContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+
+            devModeLabel.topAnchor.constraint(equalTo: devModeContainer.topAnchor, constant: 16),
+            devModeLabel.leadingAnchor.constraint(equalTo: devModeContainer.leadingAnchor, constant: 16),
+
+            devModeSwitch.centerYAnchor.constraint(equalTo: devModeLabel.centerYAnchor),
+            devModeSwitch.trailingAnchor.constraint(equalTo: devModeContainer.trailingAnchor, constant: -16),
+            devModeSwitch.leadingAnchor.constraint(greaterThanOrEqualTo: devModeLabel.trailingAnchor, constant: 16),
+
+            devModeInfoLabel.topAnchor.constraint(equalTo: devModeLabel.bottomAnchor, constant: 8),
+            devModeInfoLabel.leadingAnchor.constraint(equalTo: devModeContainer.leadingAnchor, constant: 16),
+            devModeInfoLabel.trailingAnchor.constraint(equalTo: devModeContainer.trailingAnchor, constant: -16),
+            devModeInfoLabel.bottomAnchor.constraint(equalTo: devModeContainer.bottomAnchor, constant: -16),
+
             resetButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -32),
             resetButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
             resetButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
             resetButton.heightAnchor.constraint(equalToConstant: 50)
         ])
+    }
+
+    @objc private func devModeSwitchChanged() {
+        let isDevMode = devModeSwitch.isOn
+        UserDefaults.standard.set(isDevMode, forKey: "isDevMode")
+
+        let alert = UIAlertController(
+            title: "Dev Mode \(isDevMode ? "Enabled" : "Disabled")",
+            message: "Restart the app for this change to take effect.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+
+    private func loadDevModeState() {
+        let isDevMode = UserDefaults.standard.bool(forKey: "isDevMode")
+        devModeSwitch.isOn = isDevMode
     }
 
     @objc private func resetButtonTapped() {

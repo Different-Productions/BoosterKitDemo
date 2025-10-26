@@ -31,21 +31,26 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Create custom view configurations
         let viewConfigurations = createViewConfigurations()
 
+        // Get dev mode state from UserDefaults
+        let isDevMode = UserDefaults.standard.bool(forKey: "isDevMode")
+
         // Initialize BoosterManager with boosters and view configurations
         boosterManager = BoosterManager(
             modelContainer: modelContainer,
             boosters: boosters,
-            viewConfigurations: viewConfigurations
-        ) { userAction in
-            switch userAction {
-            case .primaryActionTapped(let boosterID):
-                print("User tapped action for booster: \(boosterID)")
-                self.handleBoosterAction(boosterID: boosterID)
+            viewConfigurations: viewConfigurations,
+            userActionHandler: { userAction in
+                switch userAction {
+                case .primaryActionTapped(let boosterID):
+                    print("User tapped action for booster: \(boosterID)")
+                    self.handleBoosterAction(boosterID: boosterID)
 
-            case .dismissed(let boosterID):
-                print("User dismissed booster: \(boosterID)")
-            }
-        }
+                case .dismissed(let boosterID):
+                    print("User dismissed booster: \(boosterID)")
+                }
+            },
+            isDevMode: isDevMode
+        )
 
         // Show Booster after a brief delay to ensure UI is ready
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
