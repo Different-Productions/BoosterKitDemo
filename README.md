@@ -12,6 +12,8 @@ This demo app shows how to:
 - Integrate BoosterKit into an iOS app
 - Display one-time feature announcement modals
 - Customize Booster content with images, titles, and descriptions
+- Add custom UIViews to Boosters for rich, interactive content
+- Configure sheet detents (medium, large, custom)
 - Track viewed Boosters with SwiftData
 - Handle user interactions (primary action vs dismissal)
 - Load Boosters from JSON configuration
@@ -19,6 +21,8 @@ This demo app shows how to:
 ## Features Demonstrated
 
 - **App Launch Flow**: See Boosters appear automatically after app launch
+- **Custom Views**: Gradient background with rocket emoji and custom text
+- **Sheet Detents**: Medium and large sheet sizes that users can expand
 - **Priority System**: Multiple Boosters with different priority levels
 - **Session Management**: Only one Booster shown per app session
 - **User Actions**: Handle button taps and dismissals
@@ -81,9 +85,13 @@ func application(_ application: UIApplication,
 ### BoosterManager Integration (SceneDelegate.swift)
 
 ```swift
+// Create custom view configurations
+let viewConfigurations = createViewConfigurations()
+
 boosterManager = BoosterManager(
   modelContainer: modelContainer,
-  boosters: loadBoosters()
+  boosters: loadBoosters(),
+  viewConfigurations: viewConfigurations
 ) { userAction in
   switch userAction {
   case .primaryActionTapped(let boosterID):
@@ -96,6 +104,43 @@ boosterManager = BoosterManager(
 // Show Booster after brief delay
 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
   self.boosterManager?.showBoosterIfNeeded(from: rootVC)
+}
+```
+
+### Custom View Configuration
+
+```swift
+func createViewConfigurations() -> [String: BoosterViewConfiguration] {
+  var configurations: [String: BoosterViewConfiguration] = [:]
+
+  // Create custom view with gradient background
+  let customView = createCustomWelcomeView()
+  configurations["welcome_booster"] = BoosterViewConfiguration(
+    customView: customView,
+    customViewHeight: 120,
+    detents: [.medium(), .large()]  // Allow user to expand sheet
+  )
+
+  return configurations
+}
+
+func createCustomWelcomeView() -> UIView {
+  let containerView = UIView()
+  containerView.backgroundColor = .systemIndigo.withAlphaComponent(0.1)
+  containerView.layer.cornerRadius = 12
+
+  // Add gradient layer
+  let gradientLayer = CAGradientLayer()
+  gradientLayer.colors = [
+    UIColor.systemIndigo.withAlphaComponent(0.3).cgColor,
+    UIColor.systemPurple.withAlphaComponent(0.3).cgColor
+  ]
+  containerView.layer.insertSublayer(gradientLayer, at: 0)
+
+  // Add content (emoji + text)
+  // ... see SceneDelegate.swift for full implementation
+
+  return containerView
 }
 ```
 
