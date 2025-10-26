@@ -17,6 +17,7 @@ This demo app shows how to:
 - Track viewed Boosters with SwiftData
 - Handle user interactions (primary action vs dismissal)
 - Load Boosters from JSON configuration
+- Use dev mode for testing without marking boosters as viewed
 
 ## Features Demonstrated
 
@@ -26,6 +27,7 @@ This demo app shows how to:
 - **Priority System**: Multiple Boosters with different priority levels
 - **Session Management**: Only one Booster shown per app session
 - **User Actions**: Handle button taps and dismissals
+- **Dev Mode Toggle**: Switch to enable/disable dev mode for testing
 - **Reset Functionality**: Test button to reset viewed state for development
 
 ## Requirements
@@ -88,18 +90,23 @@ func application(_ application: UIApplication,
 // Create custom view configurations
 let viewConfigurations = createViewConfigurations()
 
+// Get dev mode state from UserDefaults
+let isDevMode = UserDefaults.standard.bool(forKey: "isDevMode")
+
 boosterManager = BoosterManager(
   modelContainer: modelContainer,
   boosters: loadBoosters(),
-  viewConfigurations: viewConfigurations
-) { userAction in
-  switch userAction {
-  case .primaryActionTapped(let boosterID):
-    print("User tapped primary action for: \(boosterID)")
-  case .dismissed(let boosterID):
-    print("User dismissed: \(boosterID)")
-  }
-}
+  viewConfigurations: viewConfigurations,
+  userActionHandler: { userAction in
+    switch userAction {
+    case .primaryActionTapped(let boosterID):
+      print("User tapped primary action for: \(boosterID)")
+    case .dismissed(let boosterID):
+      print("User dismissed: \(boosterID)")
+    }
+  },
+  isDevMode: isDevMode  // Enable dev mode for testing
+)
 
 // Show Booster after brief delay
 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -161,10 +168,24 @@ func createCustomWelcomeView() -> UIView {
 
 ## Testing the Demo
 
+### Normal Mode (Dev Mode OFF)
 1. **First Launch**: Highest priority Booster appears
 2. **Tap "Continue"**: Booster is marked as viewed
 3. **Close App**: Reopen to see if another Booster appears
 4. **Tap "Reset Viewed Boosters"**: Clear viewed state to test again
+
+### Dev Mode (Dev Mode ON)
+1. **Toggle Dev Mode**: Enable the dev mode switch in the app
+2. **Restart App**: Close and reopen for dev mode to take effect
+3. **Test Repeatedly**: Boosters will appear every session but won't be marked as viewed
+4. **No Database Clutter**: Perfect for testing without filling your database with test records
+5. **Session State Still Active**: Only one booster shows per session (use "Reset Session State" to see another)
+
+**Dev Mode Benefits:**
+- Test boosters without permanently marking them as viewed
+- No need to constantly clear the database
+- Easier iteration during development
+- Clean database for production testing
 
 ## Learn More
 
